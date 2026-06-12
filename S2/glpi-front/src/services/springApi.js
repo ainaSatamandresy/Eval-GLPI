@@ -157,6 +157,9 @@ export const costs = {
   save(data) {
     return request('POST', '/costs', data)
   },
+  deleteByTicketId(ticketId) {
+    return request('DELETE', `/costs/ticket/${ticketId}`)
+  },
   deleteAll() {
     return request('DELETE', '/costs')
   }

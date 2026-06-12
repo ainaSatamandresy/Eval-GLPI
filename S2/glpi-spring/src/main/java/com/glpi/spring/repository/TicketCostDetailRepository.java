@@ -9,4 +9,8 @@ import java.util.List;
 @Repository
 public interface TicketCostDetailRepository extends JpaRepository<TicketCostDetail, Long> {
     List<TicketCostDetail> findByRecordId(Long recordId);
+
+    List<TicketCostDetail> findByTicketId(Integer ticketId);
+
+    void deleteByTicketId(Integer ticketId);
 }

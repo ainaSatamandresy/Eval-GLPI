@@ -1,4 +1,5 @@
 package com.glpi.spring.controller;
+import org.springframework.transaction.annotation.Transactional;
 
 import com.glpi.spring.model.TicketCostRecord;
 import com.glpi.spring.model.TicketCostDetail;
@@ -47,6 +48,22 @@ public class TicketCostController {
             }
         }
         return ResponseEntity.status(201).body(record);
+    }
+
+    @Transactional
+    @DeleteMapping("/ticket/{ticketId}")
+    public ResponseEntity<Void> deleteCostByTicketId(@PathVariable Integer ticketId) {
+        List<TicketCostDetail> details = detailRepo.findByTicketId(ticketId);
+        for (TicketCostDetail detail : details) {
+            recordRepo.findById(detail.getRecordId()).ifPresent(record -> {
+                double newTotal = record.getTotalCost() - detail.getTicketCost();
+                if (newTotal < 0) newTotal = 0.0;
+                record.setTotalCost(newTotal);
+                recordRepo.save(record);
+            });
+        }
+        detailRepo.deleteByTicketId(ticketId);
+        return ResponseEntity.noContent().build();
     }
 
     @DeleteMapping

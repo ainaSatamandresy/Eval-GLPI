@@ -37,6 +37,17 @@ export function useFeuille3Import() {
     total.value = rows.length
     let success = 0, failure = 0
 
+    // Retrieve externalids to ensure memory mapping survives separated imports
+    try {
+      const res = await glpiApi.getItemsRaw('Ticket', { range: '0-999', is_deleted: 0 })
+      const allTickets = Array.isArray(res) ? res : (res.data || [])
+      allTickets.forEach(t => {
+        if (t.externalid && !ticketRefMap[t.externalid]) {
+          ticketRefMap[t.externalid] = t.id
+        }
+      })
+    } catch (e) { console.warn("Failed to prefetch GLPI tickets", e) }
+
     for (let i = 0; i < rows.length; i++) {
       const row = rows[i]
       const ticketGlpiId = ticketRefMap[row['Num_Ticket']]
@@ -50,11 +61,11 @@ export function useFeuille3Import() {
 
       try {
         const input = {
-          tickets_id:  ticketGlpiId,
-          name:        `Coût — ticket ${row['Num_Ticket']}`,
-          actiontime:  parseInt(row['Duration_second']) || 0,
-          cost_time:   parseDecimal(row['Time_Cost']),
-          cost_fixed:  parseDecimal(row['Fixed_Cost']),
+          tickets_id: ticketGlpiId,
+          name: `Coût — ticket ${row['Num_Ticket']}`,
+          actiontime: parseInt(row['Duration_second']) || 0,
+          cost_time: parseDecimal(row['Time_Cost']),
+          cost_fixed: parseDecimal(row['Fixed_Cost']),
         }
 
         await glpiApi.createItem('TicketCost', input)

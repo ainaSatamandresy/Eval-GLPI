@@ -106,7 +106,7 @@
 <script setup>
 import { ref, computed, onMounted } from 'vue'
 import { glpiApi } from '../services/glpiApi.js'
-import { logs, preferences } from '../services/springApi.js'
+import { logs, preferences, costs } from '../services/springApi.js'
 import TicketModal from '../components/Tickets/TicketModal.vue'
 import TicketDetails from '../components/Tickets/TicketDetails.vue'
 import { useRouter } from 'vue-router'
@@ -214,6 +214,19 @@ async function onDrop(event, newStatus) {
     extra = window.prompt('Saisir un commentaire (optionnel) pour l\'assignation :')
   }
 
+  // prompt when completed
+  let ticketCost = null
+  if (Number(newStatus) === 6) {
+    const costInput = window.prompt('Saisir le coût du ticket pour l\'enregistrement dans SQLite :')
+    if (costInput !== null && costInput.trim() !== '') {
+       ticketCost = parseFloat(costInput.replace(',', '.'))
+       if (isNaN(ticketCost) || ticketCost < 0) {
+          alert("Le coût entré est invalide. L'enregistrement du coût est annulé.")
+          return
+       }
+    }
+  }
+
   const payload = { status: Number(newStatus) }
   if (extra && extra.trim()) payload.content = (ticket.content ?? '') + '\n' + extra
 
@@ -223,6 +236,38 @@ async function onDrop(event, newStatus) {
     const idx = tickets.value.findIndex((t) => t.id === ticket.id)
     if (idx !== -1) tickets.value[idx].status = Number(newStatus)
     await logs.create({ action: 'PATCH', itemtype: 'Ticket', glpiId: ticket.id, payload: JSON.stringify({ input: payload }), status: 'SUCCESS' }).catch(()=>{})
+
+    if (ticketCost !== null) {
+      let elements = []
+      try {
+        const rawItems = await glpiApi.getItemsRaw('Item_Ticket', { range: '0-999' })
+        const assocList = Array.isArray(rawItems) ? rawItems : (rawItems.data || [])
+        elements = assocList
+            .filter(a => String(a.tickets_id) === String(ticket.id))
+            .map(a => ({ id: a.items_id, type: a.itemtype }))
+      } catch (e) {
+        console.error("Impossible de fetch Item_Ticket", e)
+      }
+
+      await costs.save({
+        totalCost: ticketCost,
+        details: [{
+          ticketId: ticket.id,
+          ticketName: ticket.name,
+          ticketCost: ticketCost,
+          elementsJson: JSON.stringify(elements)
+        }]
+      }).catch(err => {
+        alert("Erreur lors de l'enregistrement du coût dans SQLite : " + err.message)
+      })
+
+      await glpiApi.createItem('TicketCost', {
+          tickets_id: ticket.id,
+          name: `Coût Résolu Kanban — Ticket ${ticket.id}`,
+          cost_time: ticketCost,
+          cost_fixed: 0,
+      }).catch(e => console.error("Erreur saving to GLPI TicketCost", e))
+    }
   } catch (e) {
     await logs.create({ action: 'PATCH', itemtype: 'Ticket', glpiId: ticket.id, status: 'ERROR', errorMessage: e.message }).catch(()=>{})
     alert('Erreur lors du changement de statut : ' + e.message)

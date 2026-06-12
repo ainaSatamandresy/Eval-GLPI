@@ -2,14 +2,14 @@ import { ref } from 'vue'
 import { glpiApi } from '../services/glpiApi.js'
 import { imports as springImports } from '../services/springApi.js'
 
-const TYPE_MAP    = { 'Incident': 1, 'Demande': 2, 'Request': 2 }
-const STATUS_MAP  = { 'New': 1, 'Assigned': 2, 'Planning': 3, 'Pending': 4, 'Solved': 5, 'Closed': 6 }
+const TYPE_MAP = { 'Incident': 1, 'Demande': 2, 'Request': 2 }
+const STATUS_MAP = { 'New': 1, 'Assigned': 2, 'Planning': 3, 'Pending': 4, 'Solved': 5, 'Closed': 6 }
 const PRIORITY_MAP = { 'Very Low': 1, 'Low': 2, 'Medium': 3, 'High': 4, 'Very High': 5, 'Major': 6 }
 
 function parseGlpiDate(date, heure) {
   if (!date) return undefined
   const [d, m, y] = date.split('/')
-  return `${y}-${m.padStart(2,'0')}-${d.padStart(2,'0')} ${heure || '00:00'}:00`
+  return `${y}-${m.padStart(2, '0')}-${d.padStart(2, '0')} ${heure || '00:00'}:00`
 }
 
 export function useFeuille2Import() {
@@ -52,12 +52,13 @@ export function useFeuille2Import() {
 
       try {
         const input = {
-          name:     row['Titre'],
-          content:  row['Description'],
-          type:     TYPE_MAP[row['Type']] ?? 1,
-          status:   STATUS_MAP[row['Status']] ?? 1,
+          name: row['Titre'],
+          content: row['Description'],
+          type: TYPE_MAP[row['Type']] ?? 1,
+          status: STATUS_MAP[row['Status']] ?? 1,
           priority: PRIORITY_MAP[row['Priority']] ?? 3,
-          date:     parseGlpiDate(row['Date'], row['Heure']),
+          date: parseGlpiDate(row['Date'], row['Heure']),
+          externalid: String(row['Ref_Ticket'] || ''),
         }
 
         const created = await glpiApi.createItem('Ticket', input)
@@ -65,21 +66,44 @@ export function useFeuille2Import() {
         // Stocker la correspondance Ref → ID GLPI
         if (row['Ref_Ticket']) ticketRefMap[row['Ref_Ticket']] = created.id
 
-        // Associer les éléments (Items = JSON array de noms)
+        // Helper pour chercher l'élément dans GLPI s'il n'est pas dans le cache
+        async function findItemAcrossTypes(itemName) {
+          const types = ['Computer', 'Monitor', 'Phone', 'Printer', 'NetworkEquipment']
+          for (const t of types) {
+            try {
+              const res = await glpiApi.getItems(t, { searchText: itemName, range: '0-2' })
+              const found = res.find(r => r.name?.toLowerCase() === itemName.toLowerCase() || r.otherserial === itemName)
+              if (found) return { itemtype: t, id: found.id }
+            } catch (e) { }
+          }
+          return null
+        }
+
+        // Associer les éléments (Items = JSON array de noms ou virgules)
         if (row['Items']) {
           let itemNames = []
-          try { itemNames = JSON.parse(row['Items']) } catch { /* ignore */ }
+          try {
+            itemNames = JSON.parse(row['Items'])
+          } catch {
+            let rawStr = String(row['Items']).replace(/\[/g, '').replace(/\]/g, '')
+            itemNames = rawStr.split(',').map(s => s.trim()).filter(Boolean)
+          }
 
           for (const itemName of itemNames) {
-            const assoc = itemNameMap[itemName]
+            let assoc = itemNameMap[itemName]
+            if (!assoc) {
+              assoc = await findItemAcrossTypes(itemName)
+              if (assoc) itemNameMap[itemName] = assoc
+            }
+
             if (assoc) {
               await glpiApi.createItem('Item_Ticket', {
                 tickets_id: created.id,
                 itemtype: assoc.itemtype,
                 items_id: assoc.id,
-              }).catch(() => {})
+              }).catch(() => { })
             } else {
-              logs.value.push({ status: 'warn', message: `Ticket #${created.id} — élément inconnu : ${itemName}` })
+              logs.value.push({ status: 'warn', message: `Ticket #${created.id} — élément introuvable dans le cache et GLPI : ${itemName}` })
             }
           }
         }
@@ -98,7 +122,7 @@ export function useFeuille2Import() {
       filename: file.name, itemtype: 'Ticket',
       totalRows: rows.length, successCount: success, failureCount: failure,
       status: failure === 0 ? 'COMPLETED' : success === 0 ? 'FAILED' : 'PARTIAL',
-    }).catch(() => {})
+    }).catch(() => { })
 
     running.value = false
     return { success, failure, ticketRefMap }

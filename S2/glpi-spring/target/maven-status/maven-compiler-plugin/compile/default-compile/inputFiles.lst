@@ -1,11 +1,16 @@
 /var/www/html/GLPI-Ici/S2/glpi-spring/src/main/java/com/glpi/spring/controller/ActionLogController.java
+/var/www/html/GLPI-Ici/S2/glpi-spring/src/main/java/com/glpi/spring/repository/TicketCostRecordRepository.java
 /var/www/html/GLPI-Ici/S2/glpi-spring/src/main/java/com/glpi/spring/repository/ActionLogRepository.java
 /var/www/html/GLPI-Ici/S2/glpi-spring/src/main/java/com/glpi/spring/config/CorsConfig.java
+/var/www/html/GLPI-Ici/S2/glpi-spring/src/main/java/com/glpi/spring/controller/TicketCostController.java
 /var/www/html/GLPI-Ici/S2/glpi-spring/src/main/java/com/glpi/spring/model/ImportHistory.java
 /var/www/html/GLPI-Ici/S2/glpi-spring/src/main/java/com/glpi/spring/model/SnapshotItem.java
 /var/www/html/GLPI-Ici/S2/glpi-spring/src/main/java/com/glpi/spring/controller/UserPreferenceController.java
+/var/www/html/GLPI-Ici/S2/glpi-spring/src/main/java/com/glpi/spring/model/TicketCostRecord.java
 /var/www/html/GLPI-Ici/S2/glpi-spring/src/main/java/com/glpi/spring/controller/ImportHistoryController.java
 /var/www/html/GLPI-Ici/S2/glpi-spring/src/main/java/com/glpi/spring/model/ActionLog.java
+/var/www/html/GLPI-Ici/S2/glpi-spring/src/main/java/com/glpi/spring/model/TicketCostDetail.java
+/var/www/html/GLPI-Ici/S2/glpi-spring/src/main/java/com/glpi/spring/repository/TicketCostDetailRepository.java
 /var/www/html/GLPI-Ici/S2/glpi-spring/src/main/java/com/glpi/spring/controller/SnapshotController.java
 /var/www/html/GLPI-Ici/S2/glpi-spring/src/main/java/com/glpi/spring/GlpiSpringApplication.java
 /var/www/html/GLPI-Ici/S2/glpi-spring/src/main/java/com/glpi/spring/model/Snapshot.java

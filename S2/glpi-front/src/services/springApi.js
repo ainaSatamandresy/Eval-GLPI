@@ -143,3 +143,21 @@ export const logs = {
     return request('DELETE', `/logs/${id}`)
   },
 }
+
+// ---------------------------------------------------------------------------
+// Coûts Tickets
+// ---------------------------------------------------------------------------
+export const costs = {
+  list() {
+    return request('GET', `/costs`)
+  },
+  getDetails(recordId) {
+    return request('GET', `/costs/${recordId}/details`)
+  },
+  save(data) {
+    return request('POST', '/costs', data)
+  },
+  deleteAll() {
+    return request('DELETE', '/costs')
+  }
+}

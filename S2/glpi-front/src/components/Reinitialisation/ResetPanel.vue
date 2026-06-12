@@ -1,9 +1,12 @@
 <template>
   <div class="reset-panel">
-    <h2>Réinitialisation de données</h2>
-    <h2>essai</h2>
+    <div class="header-split">
+      <h2>Réinitialisation de données</h2>
+      <button class="btn-danger-outline" @click="resetSqlite" :disabled="wipingLocal">
+        {{ wipingLocal ? 'Vidage en cours...' : 'Vider SQLite (Coûts & Historique)' }}
+      </button>
+    </div>
     
-
     <div class="field">
       <label for="itemtype">Type d'objet GLPI</label>
       <select id="itemtype" v-model="itemtype" @change="onTypeChange">
@@ -78,6 +81,7 @@ import { ref, computed } from 'vue'
 import { useReinit } from '../../composables/useReinit.js'
 import ResetConfirm from './ResetConfirm.vue'
 import ResetResult from './ResetResult.vue'
+import { costs, logs } from '../../services/springApi.js'
 
 const {
   items, selectedIds, loading, loadingItems, error, results,
@@ -105,6 +109,21 @@ function onRecommencer() {
   reset()
   if (itemtype.value) loadItems(itemtype.value)
 }
+
+const wipingLocal = ref(false)
+async function resetSqlite() {
+  if (!window.confirm("Voulez-vous vraiment vider l'historique et les coûts stockés dans la base SQLite locale ?")) return
+  wipingLocal.value = true
+  try {
+    await costs.deleteAll().catch(() => {})
+    await logs.clearAll().catch(() => {})
+    alert("Données SQLite locales purgées avec succès.")
+  } catch(e) {
+    alert("Erreur système: " + e.message)
+  } finally {
+    wipingLocal.value = false
+  }
+}
 </script>
 
 <style scoped>
@@ -115,10 +134,33 @@ function onRecommencer() {
 }
 
 h2 {
-  margin: 0 0 1.25rem;
+  margin: 0;
   font-size: clamp(1.4rem, 2vw, 1.8rem);
   color: var(--text-strong);
 }
+.header-split {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1.25rem;
+}
+.btn-danger-outline {
+  background: white;
+  color: var(--danger);
+  border: 1px solid var(--danger);
+  padding: 0.5rem 0.9rem;
+  border-radius: 999px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+.btn-danger-outline:hover:not(:disabled) {
+  background: rgba(214, 69, 69, 0.08);
+}
+.btn-danger-outline:disabled {
+  opacity: 0.4;
+}
+
 .field { margin: 0 0 1.5rem; display: flex; flex-direction: column; gap: 0.3rem; }
 label { font-size: 0.9rem; font-weight: 700; color: var(--muted); }
 select {

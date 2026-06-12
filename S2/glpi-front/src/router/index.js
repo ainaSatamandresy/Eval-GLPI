@@ -10,6 +10,7 @@ const routes = [
   { path: '/reinitialisation', component: () => import('../views/ReinitialisationView.vue') },
   { path: '/import', component: () => import('../views/ImportView.vue') },
   { path: '/dashboard', component: () => import('../views/DashboardView.vue'), meta: { backoffice: true } },
+  { path: '/ticket-cost', component: () => import('../views/TicketCostView.vue'), meta: { backoffice: true } },
   { path: '/kanban-settings', component: () => import('../views/KanbanSettingsView.vue'), meta: { backoffice: true } },
 ]
 

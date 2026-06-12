@@ -7,6 +7,7 @@
       <RouterLink to="/dashboard" class="nav-item"><span>Dashboard</span></RouterLink>
       <RouterLink to="/import" class="nav-item"> <span>Import</span></RouterLink>
       <RouterLink to="/tickets" class="nav-item"> <span>Tickets</span></RouterLink>
+      <RouterLink to="/ticket-cost" class="nav-item"> <span>Coût Ticket</span></RouterLink>
       <RouterLink to="/reinitialisation" class="nav-item"> <span>Réinitialisation</span></RouterLink>
       <RouterLink to="/elements" class="nav-item"> <span>Éléments</span></RouterLink>
       <RouterLink to="/kanban-settings" class="nav-item"> <span>Enregistrer dans SQLite</span></RouterLink>

@@ -1,6 +1,7 @@
 <template>
   <div class="reset-panel">
     <h2>Réinitialisation de données</h2>
+    <h1>Attention : tonga ilay izy !</h1>
 
     <div class="field">
       <label for="itemtype">Type d'objet GLPI</label>

@@ -53,6 +53,7 @@ export function useFeuille1Import() {
         total.value = rows.length
         let success = 0, failure = 0
 
+
         for (let i = 0; i < rows.length; i++) {
             const row = rows[i]
             const itemtype = row['Item_Type']?.trim()

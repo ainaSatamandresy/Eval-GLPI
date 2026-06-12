@@ -1,6 +1,7 @@
 <template>
   <div class="reset-panel">
     <h2>Réinitialisation de données</h2>
+    <h2>essai</h2>
     
 
     <div class="field">

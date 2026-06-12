@@ -54,9 +54,9 @@ export function useFeuille2Import() {
         const input = {
           name:     row['Titre'],
           content:  row['Description'],
-          type:     TYPE_MAP[row['Type']] ?? 1,
-          status:   STATUS_MAP[row['Status']] ?? 1,
-          priority: PRIORITY_MAP[row['Priority']] ?? 3,
+          type:     TYPE_MAP[(row['Type'] || '').toLowerCase()] ?? 1,
+          status:   STATUS_MAP[(row['Status'] || '').toLowerCase()] ?? 1,
+          priority: PRIORITY_MAP[(row['Priority'] || '').toLowerCase()] ?? 3,
           date:     parseGlpiDate(row['Date'], row['Heure']),
         }
 
